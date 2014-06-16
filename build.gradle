@@ -1,0 +1,78 @@
+buildscript {
+    ext {
+        springBootVersion = '1.0.2.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("org.cloudfoundry:cf-gradle-plugin:1.0.2")
+    }
+}
+
+ext {
+    springCloudVersion = "1.0.0.RC2"
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+apply plugin: 'cloudfoundry'
+
+tasks."cf-push".dependsOn assemble
+
+cloudfoundry {
+    target = "https://api.run.pivotal.io"
+    organization = "platform-eng"
+    space = "mstine"
+
+    application = "cities"
+    file = file("${jar.archivePath}")
+    host = "cities"
+    domain = "cfapps.io"
+    memory = 512
+    instances = 1
+    healthCheckTimeout = 180
+    /*env = [
+            "SPRING_PROFILES_ACTIVE": "cloud"
+    ]*/
+
+    /*services {
+        "cities-db" {
+            label = "p-mysql"
+            plan = "100mb-dev"
+        }
+    }*/
+
+    // required for PCF deployment, not required for PWS
+    //trustSelfSignedCerts = true
+}
+
+/*jar {
+    baseName = 'cities'
+    version =  '0.0.1-SNAPSHOT'
+} */
+
+repositories {
+    mavenCentral()
+    maven { url "http://repo.spring.io/milestone" }
+    maven { url "http://repo.spring.io/snapshot" }
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}")
+    compile("org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}")
+    compile("org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}")
+    compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
+    testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
+    compile("org.springframework.cloud:spring-cloud-spring-service-connector:${springCloudVersion}")
+    compile("org.springframework.cloud:spring-cloud-cloudfoundry-connector:${springCloudVersion}")
+    //runtime("mysql:mysql-connector-java:5.1.25")
+    runtime("org.hsqldb:hsqldb")
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.12'
+}
