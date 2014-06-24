@@ -11,6 +11,14 @@ buildscript {
     }
 }
 
+allprojects {
+    if (project.hasProperty('buildversion')) {
+        project.version = project.buildversion
+    } else {
+        project.version = '1.0'
+    }
+}
+
 ext {
     springCloudVersion = "1.0.0.RC2"
 }
